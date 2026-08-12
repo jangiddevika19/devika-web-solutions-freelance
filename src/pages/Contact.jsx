@@ -240,25 +240,25 @@ export default function Contact() {
                 Email
               </p>
 
-              <a
-                href="mailto:devika1909jangid19@gmail.com"
-                className="
-                  mt-1
-                  block
-                  max-w-full
-                  break-all
-                  text-sm
-                  font-semibold
-                  leading-relaxed
-                  text-slate-800
-                  transition-colors
-                  duration-300
-                  hover:text-sky-600
-                  sm:text-base
-                "
-              >
-                devikawebsolutions.info@gmail.com
-              </a>
+   <a
+  href="mailto:devikawebsolutions.info@gmail.com"
+  className="
+    mt-1
+    block
+    whitespace-nowrap
+    text-[13px]
+    font-semibold
+    leading-relaxed
+    tracking-tight
+    text-slate-800
+    transition-colors
+    duration-300
+    hover:text-sky-600
+    sm:text-base
+  "
+>
+  devikawebsolutions.info@gmail.com
+</a>
             </div>
 
             {/* SERVICES CARD */}
