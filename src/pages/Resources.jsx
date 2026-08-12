@@ -27,7 +27,7 @@ import {
 ========================================================= */
 
 const EMAILJS_SERVICE_ID = "service_mkjrjyp";
-const EMAILJS_TEMPLATE_ID = "template_li5zdeq";
+const EMAILJS_TEMPLATE_ID = "template_3i9x41q";
 const EMAILJS_PUBLIC_KEY = "_WgZhn1NzggSPGWvl";
 
 /* =========================================================
@@ -55,10 +55,27 @@ const RESOURCE_CATEGORIES = [
 
 /* =========================================================
    RESOURCE DATA
-   ₹1 FOR TESTING
 ========================================================= */
 
 const RESOURCES = [
+  /* =======================================================
+     ₹1 TRIAL — ALWAYS FIRST
+  ======================================================= */
+
+  {
+    id: 0,
+    icon: Sparkles,
+    category: "notes",
+    tag: "TRIAL",
+    title: "Developer Resource Trial",
+    description:
+      "Try a premium developer resource for just ₹1 before purchasing a complete resource.",
+    level: "Trial Access",
+    format: "Trial Resource",
+    price: "₹1",
+    featured: true,
+  },
+
   {
     id: 1,
     icon: BookOpen,
@@ -69,7 +86,7 @@ const RESOURCES = [
       "Simple and practical Core Java notes covering important fundamentals, OOPs and commonly used concepts.",
     level: "Core Java",
     format: "PDF Notes",
-    price: "₹1",
+    price: "₹99",
     featured: true,
   },
 
@@ -83,7 +100,7 @@ const RESOURCES = [
       "Quick SQL revision sheet covering important commands, queries, joins, constraints and commonly used syntax.",
     level: "SQL Revision",
     format: "Cheat Sheet",
-    price: "₹1",
+    price: "₹99",
     featured: true,
   },
 
@@ -97,7 +114,7 @@ const RESOURCES = [
       "Important Core Java and OOP interview questions explained in a simple and practical way.",
     level: "Interview Prep",
     format: "Questions",
-    price: "₹1",
+    price: "₹149",
     featured: true,
   },
 
@@ -111,7 +128,7 @@ const RESOURCES = [
       "Frequently asked SQL interview questions covering queries, joins, constraints and database concepts.",
     level: "Interview Prep",
     format: "Questions",
-    price: "₹1",
+    price: "₹149",
     featured: false,
   },
 
@@ -125,7 +142,7 @@ const RESOURCES = [
       "Learn HTML, CSS, JavaScript, React, Git and modern frontend development step by step.",
     level: "Beginner → Job Ready",
     format: "Roadmap",
-    price: "₹1",
+    price: "₹199",
     featured: true,
   },
 
@@ -139,7 +156,7 @@ const RESOURCES = [
       "Clean notes covering Java fundamentals, OOPs, Collections, Exception Handling and important concepts.",
     level: "Core Java",
     format: "PDF Notes",
-    price: "₹1",
+    price: "₹199",
     featured: false,
   },
 
@@ -150,10 +167,10 @@ const RESOURCES = [
     tag: "ROADMAP",
     title: "Java Full Stack Roadmap",
     description:
-      "A structured roadmap covering Core Java, OOPs, Spring Boot, databases, React and full-stack development.",
+      "A structured 22-page roadmap covering Core Java, OOPs, Spring Boot, databases, React and full-stack development.",
     level: "Beginner → Advanced",
-    format: "Roadmap",
-    price: "₹1",
+    format: "22-Page Roadmap",
+    price: "₹249",
     featured: true,
   },
 
@@ -167,7 +184,7 @@ const RESOURCES = [
       "A practical collection of frontend, backend, database and project-based interview questions.",
     level: "Job Preparation",
     format: "Question Pack",
-    price: "₹1",
+    price: "₹299",
     featured: true,
   },
 
@@ -181,7 +198,7 @@ const RESOURCES = [
       "A complete developer preparation bundle combining roadmaps, notes and interview resources.",
     level: "Full Stack",
     format: "Resource Pack",
-    price: "₹1",
+    price: "₹299",
     featured: true,
   },
 ];
@@ -247,6 +264,8 @@ function ResourceCard({ resource, onExplore }) {
         sm:p-6
       "
     >
+      {/* Background Glow */}
+
       <div
         className="
           pointer-events-none
@@ -264,9 +283,36 @@ function ResourceCard({ resource, onExplore }) {
         "
       />
 
-      <div className="relative flex items-start justify-between gap-3">
+      {/* Trial Badge */}
+
+      {resource.id === 0 && (
         <div
           className="
+            absolute
+            left-4
+            top-4
+            z-10
+            rounded-full
+            bg-gradient-to-r
+            from-emerald-500
+            to-green-600
+            px-2.5
+            py-1
+            text-[8px]
+            font-black
+            uppercase
+            tracking-[0.12em]
+            text-white
+            shadow-lg
+          "
+        >
+          Try for ₹1
+        </div>
+      )}
+
+      <div className="relative flex items-start justify-between gap-3">
+        <div
+          className={`
             flex
             h-11
             w-11
@@ -274,10 +320,11 @@ function ResourceCard({ resource, onExplore }) {
             items-center
             justify-center
             rounded-2xl
-            bg-sky-50
-            text-sky-600
-            ring-1
-            ring-sky-100
+            ${
+              resource.id === 0
+                ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100"
+                : "bg-sky-50 text-sky-600 ring-1 ring-sky-100"
+            }
             transition-all
             duration-300
             group-hover:scale-105
@@ -285,7 +332,7 @@ function ResourceCard({ resource, onExplore }) {
             group-hover:text-white
             sm:h-12
             sm:w-12
-          "
+          `}
         >
           <Icon className="h-5 w-5" />
         </div>
@@ -380,6 +427,8 @@ function ResourceCard({ resource, onExplore }) {
         </div>
       </div>
 
+      {/* Price */}
+
       <div
         className="
           relative
@@ -409,13 +458,15 @@ function ResourceCard({ resource, onExplore }) {
           </p>
 
           <p
-            className="
+            className={`
               mt-0.5
-              text-lg
               font-bold
-              text-slate-900
-              sm:text-xl
-            "
+              ${
+                resource.id === 0
+                  ? "text-xl text-emerald-600"
+                  : "text-lg text-slate-900 sm:text-xl"
+              }
+            `}
           >
             {resource.price}
           </p>
@@ -451,7 +502,8 @@ function ResourceCard({ resource, onExplore }) {
             sm:text-xs
           "
         >
-          Explore
+          {resource.id === 0 ? "Try ₹1" : "Explore"}
+
           <ArrowUpRight className="h-3.5 w-3.5" />
         </motion.button>
       </div>
@@ -473,18 +525,12 @@ function ResourceModal({ resource, onClose }) {
 
   const Icon = resource.icon;
 
-  /* =======================================================
-     PAYMENT COMPLETED BUTTON
-  ======================================================= */
+  const isTrial = resource.id === 0;
 
   const handleCompletedPayment = () => {
     setPaymentStep("confirmation");
     setError("");
   };
-
-  /* =======================================================
-     SUBMIT PAYMENT CONFIRMATION
-  ======================================================= */
 
   const handleSubmitConfirmation = async (event) => {
     event.preventDefault();
@@ -495,61 +541,51 @@ function ResourceModal({ resource, onClose }) {
     const form = event.currentTarget;
     const formData = new FormData(form);
 
-    const name = formData.get("name")?.trim();
-    const email = formData.get("email")?.trim();
-    const utr = formData.get("utr")?.trim();
-    const message = formData.get("message")?.trim();
-
-    /* REQUIRED VALIDATION */
-
-    if (!name || !email || !utr) {
-      setError("Please fill all required fields.");
-      setSending(false);
-      return;
-    }
-
-    /* EMAILJS DATA */
+    const name = formData.get("name");
+    const email = formData.get("email");
+    const utr = formData.get("utr");
+    const message = formData.get("message");
 
     const templateParams = {
+      name,
+      email,
+      transaction_id: utr,
+      utr,
+
+      resource_name: resource.title,
       resource_title: resource.title,
+
       amount: resource.price,
-
-      customer_name: name,
-      customer_email: email,
-
-      utr: utr,
+      price: resource.price,
 
       message:
-        message || "No additional message was provided.",
+        message ||
+        "No additional message was provided.",
+
+      subject: `New Resource Payment - ${resource.title}`,
 
       reply_to: email,
+
+      website: "Devika Web Solutions",
     };
 
-    console.log(
-      "Payment confirmation data:",
-      templateParams
-    );
-
     try {
-      const response = await emailjs.send(
+      await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
         templateParams,
         EMAILJS_PUBLIC_KEY
       );
 
-      console.log("EmailJS success:", response);
-
       setSubmitted(true);
-    } catch (error) {
+    } catch (err) {
       console.error(
         "EmailJS Resource Payment Error:",
-        error
+        err
       );
 
       setError(
-        error?.text ||
-          "Payment details submit nahi ho paaye. Please try again."
+        "Payment details submit nahi ho paaye. Please try again."
       );
     } finally {
       setSending(false);
@@ -559,15 +595,9 @@ function ResourceModal({ resource, onClose }) {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{
-          opacity: 0,
-        }}
-        animate={{
-          opacity: 1,
-        }}
-        exit={{
-          opacity: 0,
-        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         onClick={onClose}
         className="
           fixed
@@ -602,7 +632,9 @@ function ResourceModal({ resource, onClose }) {
             duration: 0.3,
             ease: EASE,
           }}
-          onClick={(event) => event.stopPropagation()}
+          onClick={(event) =>
+            event.stopPropagation()
+          }
           className="
             relative
             w-full
@@ -620,8 +652,6 @@ function ResourceModal({ resource, onClose }) {
             sm:p-6
           "
         >
-          {/* GLOW */}
-
           <div
             className="
               pointer-events-none
@@ -694,8 +724,7 @@ function ResourceModal({ resource, onClose }) {
               </h2>
 
               <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-slate-500">
-                Your payment details have been submitted
-                successfully.
+                Your payment details have been submitted successfully.
               </p>
 
               <div
@@ -729,9 +758,8 @@ function ResourceModal({ resource, onClose }) {
               </div>
 
               <p className="mt-4 text-[10px] leading-4 text-slate-400">
-                Your payment will be verified manually.
-                Access details will be shared after
-                confirmation.
+                Your payment will be verified manually. Access details
+                will be shared after confirmation.
               </p>
 
               <button
@@ -760,14 +788,11 @@ function ResourceModal({ resource, onClose }) {
             ================================================= */
 
             <div className="relative">
-              {/* BACK */}
-
               <button
                 type="button"
-                onClick={() => {
-                  setPaymentStep("payment");
-                  setError("");
-                }}
+                onClick={() =>
+                  setPaymentStep("payment")
+                }
                 className="
                   mb-4
                   inline-flex
@@ -783,8 +808,6 @@ function ResourceModal({ resource, onClose }) {
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Back to payment
               </button>
-
-              {/* HEADER */}
 
               <div className="flex items-center gap-3 pr-8">
                 <div
@@ -816,8 +839,6 @@ function ResourceModal({ resource, onClose }) {
                   </h2>
                 </div>
               </div>
-
-              {/* RESOURCE */}
 
               <div
                 className="
@@ -857,8 +878,6 @@ function ResourceModal({ resource, onClose }) {
                   </span>
                 </div>
               </div>
-
-              {/* FORM */}
 
               <form
                 onSubmit={handleSubmitConfirmation}
@@ -1069,8 +1088,7 @@ function ResourceModal({ resource, onClose }) {
               </form>
 
               <p className="mt-3 text-center text-[9px] leading-4 text-slate-400">
-                Please make sure your transaction ID /
-                UTR is correct.
+                Please make sure your transaction ID / UTR is correct.
               </p>
             </div>
           ) : (
@@ -1079,11 +1097,9 @@ function ResourceModal({ resource, onClose }) {
             ================================================= */
 
             <>
-              {/* HEADER */}
-
               <div className="relative flex items-center gap-3 pr-8">
                 <div
-                  className="
+                  className={`
                     flex
                     h-11
                     w-11
@@ -1091,12 +1107,14 @@ function ResourceModal({ resource, onClose }) {
                     items-center
                     justify-center
                     rounded-2xl
-                    bg-gradient-to-br
-                    from-sky-500
-                    to-blue-700
+                    ${
+                      isTrial
+                        ? "bg-gradient-to-br from-emerald-500 to-green-600"
+                        : "bg-gradient-to-br from-sky-500 to-blue-700"
+                    }
                     text-white
                     shadow-[0_8px_20px_rgba(14,165,233,0.25)]
-                  "
+                  `}
                 >
                   <Icon className="h-5 w-5" />
                 </div>
@@ -1124,13 +1142,9 @@ function ResourceModal({ resource, onClose }) {
                 </div>
               </div>
 
-              {/* DESCRIPTION */}
-
               <p className="relative mt-4 text-xs leading-5 text-slate-500">
                 {resource.description}
               </p>
-
-              {/* BENEFITS */}
 
               <div className="relative mt-4 grid grid-cols-2 gap-2">
                 {[
@@ -1186,12 +1200,36 @@ function ResourceModal({ resource, onClose }) {
                       Get access
                     </p>
 
-                    <p className="mt-0.5 text-xl font-black text-slate-900">
+                    <p
+                      className={`
+                        mt-0.5
+                        text-xl
+                        font-black
+                        ${
+                          isTrial
+                            ? "text-emerald-600"
+                            : "text-slate-900"
+                        }
+                      `}
+                    >
                       {resource.price}
                     </p>
                   </div>
 
-                  <div className="rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-bold text-emerald-600">
+                  <div
+                    className={`
+                      rounded-full
+                      px-2.5
+                      py-1
+                      text-[9px]
+                      font-bold
+                      ${
+                        isTrial
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-emerald-50 text-emerald-600"
+                      }
+                    `}
+                  >
                     ONE-TIME
                   </div>
                 </div>
@@ -1226,8 +1264,14 @@ function ResourceModal({ resource, onClose }) {
                   />
 
                   <p className="mt-2 text-[10px] font-semibold text-slate-500">
-                    Scan & Pay via UPI
+                    Scan & Pay ₹{isTrial ? "1" : "via UPI"}
                   </p>
+
+                  {isTrial && (
+                    <span className="mt-1 text-[9px] font-semibold text-emerald-600">
+                      Trial access — only ₹1
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -1275,8 +1319,8 @@ function ResourceModal({ resource, onClose }) {
               </div>
 
               <p className="relative mt-3 text-center text-[9px] leading-4 text-slate-400">
-                After payment, click the button above to
-                submit your payment details.
+                After payment, click the button above to submit your
+                payment details.
               </p>
             </>
           )}
@@ -1298,10 +1342,6 @@ export default function Resources() {
     useState(null);
 
   const [search, setSearch] = useState("");
-
-  /* =======================================================
-     FILTER
-  ======================================================= */
 
   const filteredResources = RESOURCES.filter(
     (resource) => {
@@ -1334,12 +1374,15 @@ export default function Resources() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
+
       {/* =================================================
           HERO
       ================================================= */}
 
       <header className="relative overflow-hidden">
+
         <div className="pointer-events-none absolute inset-0">
+
           <div
             className="
               absolute
@@ -1377,6 +1420,7 @@ export default function Resources() {
               to-transparent
             "
           />
+
         </div>
 
         <div
@@ -1393,7 +1437,6 @@ export default function Resources() {
             lg:px-10
           "
         >
-          {/* BACK */}
 
           <motion.a
             href="/"
@@ -1445,8 +1488,6 @@ export default function Resources() {
             Back to Devika Web Solutions
           </motion.a>
 
-          {/* HERO GRID */}
-
           <div
             className="
               mt-12
@@ -1457,7 +1498,6 @@ export default function Resources() {
               lg:gap-12
             "
           >
-            {/* LEFT */}
 
             <motion.div
               initial="hidden"
@@ -1471,6 +1511,7 @@ export default function Resources() {
                 },
               }}
             >
+
               <motion.div variants={fadeUp}>
                 <span
                   className="
@@ -1543,22 +1584,14 @@ export default function Resources() {
                   sm:leading-7
                 "
               >
-                Practical roadmaps, interview questions,
-                developer notes and preparation resources
-                designed to help you move from learning to
-                building with confidence.
+                Practical roadmaps, interview questions, developer notes
+                and preparation resources designed to help you move from
+                learning to building with confidence.
               </motion.p>
 
               <motion.div
                 variants={fadeUp}
-                className="
-                  mt-7
-                  flex
-                  flex-wrap
-                  gap-2.5
-                  sm:mt-8
-                  sm:gap-3
-                "
+                className="mt-7 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3"
               >
                 {[
                   {
@@ -1574,7 +1607,7 @@ export default function Resources() {
                     value: "Developer Notes",
                   },
                 ].map((item) => {
-                  const ItemIcon = item.icon;
+                  const Icon = item.icon;
 
                   return (
                     <div
@@ -1597,16 +1630,17 @@ export default function Resources() {
                         sm:text-xs
                       "
                     >
-                      <ItemIcon className="h-3.5 w-3.5 text-sky-500" />
+                      <Icon className="h-3.5 w-3.5 text-sky-500" />
 
                       {item.value}
                     </div>
                   );
                 })}
               </motion.div>
+
             </motion.div>
 
-            {/* RIGHT */}
+            {/* JOURNEY CARD */}
 
             <motion.div
               initial={{
@@ -1626,6 +1660,7 @@ export default function Resources() {
               }}
               className="relative hidden lg:block"
             >
+
               <div
                 className="
                   absolute
@@ -1649,7 +1684,9 @@ export default function Resources() {
                   backdrop-blur-xl
                 "
               >
+
                 <div className="flex items-center justify-between">
+
                   <div
                     className="
                       flex
@@ -1678,6 +1715,7 @@ export default function Resources() {
                   >
                     KEEP LEARNING
                   </span>
+
                 </div>
 
                 <h3 className="mt-7 text-xl font-bold text-slate-900">
@@ -1685,11 +1723,12 @@ export default function Resources() {
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Pick a roadmap, sharpen your interview
-                  skills and keep building.
+                  Pick a roadmap, sharpen your interview skills and keep
+                  building.
                 </p>
 
                 <div className="mt-7 space-y-4">
+
                   {[
                     {
                       label: "Learn fundamentals",
@@ -1705,13 +1744,19 @@ export default function Resources() {
                     },
                   ].map((item) => (
                     <div key={item.label}>
+
                       <div className="flex justify-between text-[11px] font-medium text-slate-500">
-                        <span>{item.label}</span>
+
+                        <span>
+                          {item.label}
+                        </span>
 
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+
                       </div>
 
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+
                         <motion.div
                           initial={{
                             width: 0,
@@ -1732,12 +1777,18 @@ export default function Resources() {
                             to-sky-600
                           "
                         />
+
                       </div>
+
                     </div>
                   ))}
+
                 </div>
+
               </div>
+
             </motion.div>
+
           </div>
         </div>
       </header>
@@ -1758,7 +1809,6 @@ export default function Resources() {
           lg:px-10
         "
       >
-        {/* RESOURCE HEADER */}
 
         <div
           className="
@@ -1774,7 +1824,9 @@ export default function Resources() {
             lg:justify-between
           "
         >
+
           <div>
+
             <p
               className="
                 text-[10px]
@@ -1812,14 +1864,16 @@ export default function Resources() {
                 sm:leading-6
               "
             >
-              Start with a roadmap, prepare for interviews
-              or pick up concise notes for quick revision.
+              Start with a roadmap, prepare for interviews or pick up
+              concise notes for quick revision.
             </p>
+
           </div>
 
           {/* SEARCH */}
 
           <div className="relative w-full lg:max-w-xs">
+
             <Search
               className="
                 pointer-events-none
@@ -1860,13 +1914,17 @@ export default function Resources() {
                 sm:text-sm
               "
             />
+
           </div>
+
         </div>
 
         {/* CATEGORIES */}
 
         <div className="mt-7 flex gap-2 overflow-x-auto pb-2 sm:mt-8">
+
           {RESOURCE_CATEGORIES.map((category) => {
+
             const active =
               activeCategory === category.id;
 
@@ -1901,6 +1959,7 @@ export default function Resources() {
               </button>
             );
           })}
+
         </div>
 
         {/* RESOURCE GRID */}
@@ -1918,7 +1977,9 @@ export default function Resources() {
             sm:gap-5
           "
         >
+
           <AnimatePresence mode="popLayout">
+
             {filteredResources.map((resource) => (
               <ResourceCard
                 key={resource.id}
@@ -1926,7 +1987,9 @@ export default function Resources() {
                 onExplore={setSelectedResource}
               />
             ))}
+
           </AnimatePresence>
+
         </motion.div>
 
         {/* EMPTY */}
@@ -1945,6 +2008,7 @@ export default function Resources() {
               text-center
             "
           >
+
             <Search className="mx-auto h-8 w-8 text-slate-300" />
 
             <h3 className="mt-4 text-lg font-semibold text-slate-900">
@@ -1952,9 +2016,9 @@ export default function Resources() {
             </h3>
 
             <p className="mt-2 text-sm text-slate-500">
-              Try another keyword or choose a different
-              category.
+              Try another keyword or choose a different category.
             </p>
+
           </div>
         )}
 
@@ -1980,6 +2044,7 @@ export default function Resources() {
             sm:py-11
           "
         >
+
           <div
             className="
               pointer-events-none
@@ -1995,6 +2060,7 @@ export default function Resources() {
           />
 
           <div className="relative">
+
             <div
               className="
                 mx-auto
@@ -2051,11 +2117,12 @@ export default function Resources() {
                 sm:text-sm
               "
             >
-              More roadmaps, cheat sheets, notes and
-              interview preparation resources will be added
-              regularly.
+              More roadmaps, cheat sheets, notes and interview preparation
+              resources will be added regularly.
             </p>
+
           </div>
+
         </section>
 
         {/* BOTTOM CTA */}
@@ -2074,6 +2141,7 @@ export default function Resources() {
             sm:py-12
           "
         >
+
           <div
             className="
               pointer-events-none
@@ -2099,7 +2167,9 @@ export default function Resources() {
               sm:justify-between
             "
           >
+
             <div>
+
               <span
                 className="
                   inline-flex
@@ -2145,9 +2215,10 @@ export default function Resources() {
                   sm:leading-6
                 "
               >
-                New roadmaps, interview questions and
-                developer resources will be added regularly.
+                New roadmaps, interview questions and developer resources
+                will be added regularly.
               </p>
+
             </div>
 
             <div
@@ -2167,8 +2238,11 @@ export default function Resources() {
             >
               <Code2 className="h-6 w-6" />
             </div>
+
           </div>
+
         </section>
+
       </main>
 
       {/* =================================================
@@ -2185,6 +2259,7 @@ export default function Resources() {
           />
         )}
       </AnimatePresence>
+
     </div>
   );
 }
