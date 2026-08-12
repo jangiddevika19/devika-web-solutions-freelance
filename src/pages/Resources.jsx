@@ -20,6 +20,7 @@ import {
   Terminal,
   Users,
   X,
+  Smartphone,
 } from "lucide-react";
 
 /* =========================================================
@@ -29,6 +30,13 @@ import {
 const EMAILJS_SERVICE_ID = "service_mkjrjyp";
 const EMAILJS_TEMPLATE_ID = "template_3i9x41q";
 const EMAILJS_PUBLIC_KEY = "_WgZhn1NzggSPGWvl";
+
+/* =========================================================
+   FAMPAY UPI
+========================================================= */
+
+const FAMPAY_UPI_ID = "devika19@fam";
+
 
 /* =========================================================
    RESOURCE CATEGORIES
@@ -58,10 +66,6 @@ const RESOURCE_CATEGORIES = [
 ========================================================= */
 
 const RESOURCES = [
-  /* =======================================================
-     ₹1 TRIAL — ALWAYS FIRST
-  ======================================================= */
-
   {
     id: 0,
     icon: Sparkles,
@@ -73,6 +77,7 @@ const RESOURCES = [
     level: "Trial Access",
     format: "Trial Resource",
     price: "₹1",
+    amount: "1",
     featured: true,
   },
 
@@ -87,6 +92,7 @@ const RESOURCES = [
     level: "Core Java",
     format: "PDF Notes",
     price: "₹99",
+    amount: "99",
     featured: true,
   },
 
@@ -101,6 +107,7 @@ const RESOURCES = [
     level: "SQL Revision",
     format: "Cheat Sheet",
     price: "₹99",
+    amount: "99",
     featured: true,
   },
 
@@ -115,6 +122,7 @@ const RESOURCES = [
     level: "Interview Prep",
     format: "Questions",
     price: "₹149",
+    amount: "149",
     featured: true,
   },
 
@@ -129,6 +137,7 @@ const RESOURCES = [
     level: "Interview Prep",
     format: "Questions",
     price: "₹149",
+    amount: "149",
     featured: false,
   },
 
@@ -143,6 +152,7 @@ const RESOURCES = [
     level: "Beginner → Job Ready",
     format: "Roadmap",
     price: "₹199",
+    amount: "199",
     featured: true,
   },
 
@@ -157,6 +167,7 @@ const RESOURCES = [
     level: "Core Java",
     format: "PDF Notes",
     price: "₹199",
+    amount: "199",
     featured: false,
   },
 
@@ -171,6 +182,7 @@ const RESOURCES = [
     level: "Beginner → Advanced",
     format: "22-Page Roadmap",
     price: "₹249",
+    amount: "249",
     featured: true,
   },
 
@@ -185,6 +197,7 @@ const RESOURCES = [
     level: "Job Preparation",
     format: "Question Pack",
     price: "₹299",
+    amount: "299",
     featured: true,
   },
 
@@ -199,6 +212,7 @@ const RESOURCES = [
     level: "Full Stack",
     format: "Resource Pack",
     price: "₹299",
+    amount: "299",
     featured: true,
   },
 ];
@@ -238,12 +252,7 @@ function ResourceCard({ resource, onExplore }) {
       initial="hidden"
       animate="visible"
       variants={fadeUp}
-      whileHover={{
-        y: -7,
-      }}
-      transition={{
-        duration: 0.25,
-      }}
+      whileHover={{ y: -7 }}
       className="
         group
         relative
@@ -264,8 +273,6 @@ function ResourceCard({ resource, onExplore }) {
         sm:p-6
       "
     >
-      {/* Background Glow */}
-
       <div
         className="
           pointer-events-none
@@ -282,8 +289,6 @@ function ResourceCard({ resource, onExplore }) {
           group-hover:bg-sky-200/80
         "
       />
-
-      {/* Trial Badge */}
 
       {resource.id === 0 && (
         <div
@@ -427,8 +432,6 @@ function ResourceCard({ resource, onExplore }) {
         </div>
       </div>
 
-      {/* Price */}
-
       <div
         className="
           relative
@@ -475,12 +478,8 @@ function ResourceCard({ resource, onExplore }) {
         <motion.button
           type="button"
           onClick={() => onExplore(resource)}
-          whileHover={{
-            scale: 1.03,
-          }}
-          whileTap={{
-            scale: 0.96,
-          }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.96 }}
           className="
             inline-flex
             cursor-pointer
@@ -497,13 +496,11 @@ function ResourceCard({ resource, onExplore }) {
             transition-all
             duration-300
             hover:bg-sky-600
-            hover:shadow-[0_10px_25px_rgba(14,165,233,0.25)]
             sm:px-4
             sm:text-xs
           "
         >
           {resource.id === 0 ? "Try ₹1" : "Explore"}
-
           <ArrowUpRight className="h-3.5 w-3.5" />
         </motion.button>
       </div>
@@ -524,16 +521,54 @@ function ResourceModal({ resource, onClose }) {
   if (!resource) return null;
 
   const Icon = resource.icon;
-
   const isTrial = resource.id === 0;
 
-  const handleCompletedPayment = () => {
-    setPaymentStep("confirmation");
-    setError("");
+  /* -------------------------------------------------------
+     OPEN FAMPAY
+  ------------------------------------------------------- */
+
+  const handlePayViaFampay = () => {
+    if (
+      !FAMPAY_UPI_ID ||
+      FAMPAY_UPI_ID === "YOUR_FAMPAY_UPI_ID"
+    ) {
+      setError(
+        "Fampay UPI ID is not configured yet. Please add your UPI ID in Resources.jsx."
+      );
+      return;
+    }
+
+    const upiUrl =
+      `upi://pay?pa=${encodeURIComponent(
+        FAMPAY_UPI_ID
+      )}` +
+      `&pn=${encodeURIComponent("Devika Web Solutions")}` +
+      `&am=${encodeURIComponent(resource.amount)}` +
+      `&cu=INR` +
+      `&tn=${encodeURIComponent(
+        resource.title
+      )}`;
+
+    window.location.href = upiUrl;
   };
+
+  /* -------------------------------------------------------
+     PAYMENT COMPLETED
+  ------------------------------------------------------- */
+
+  const handleCompletedPayment = () => {
+    setError("");
+    setPaymentStep("confirmation");
+  };
+
+  /* -------------------------------------------------------
+     EMAILJS SUBMIT
+  ------------------------------------------------------- */
 
   const handleSubmitConfirmation = async (event) => {
     event.preventDefault();
+
+    if (sending) return;
 
     setSending(true);
     setError("");
@@ -541,41 +576,77 @@ function ResourceModal({ resource, onClose }) {
     const form = event.currentTarget;
     const formData = new FormData(form);
 
-    const name = formData.get("name");
-    const email = formData.get("email");
-    const utr = formData.get("utr");
-    const message = formData.get("message");
+    const customerName =
+      String(formData.get("name") || "").trim();
+
+    const customerEmail =
+      String(formData.get("email") || "").trim();
+
+    const utr =
+      String(formData.get("utr") || "").trim();
+
+    const message =
+      String(formData.get("message") || "").trim();
+
+    if (!customerName || !customerEmail || !utr) {
+      setError(
+        "Please enter your name, email address and transaction ID / UTR."
+      );
+      setSending(false);
+      return;
+    }
+
+    /*
+      IMPORTANT:
+      These names exactly match your EmailJS template:
+
+      {{resource_title}}
+      {{amount}}
+      {{customer_name}}
+      {{customer_email}}
+      {{utr}}
+      {{message}}
+    */
 
     const templateParams = {
-      name,
-      email,
-      transaction_id: utr,
-      utr,
-
-      resource_name: resource.title,
       resource_title: resource.title,
-
       amount: resource.price,
-      price: resource.price,
+
+      customer_name: customerName,
+      customer_email: customerEmail,
+
+      utr: utr,
 
       message:
         message ||
         "No additional message was provided.",
 
-      subject: `New Resource Payment - ${resource.title}`,
+      subject: `New Resource Payment Received - ${resource.title}`,
 
-      reply_to: email,
+      reply_to: customerEmail,
 
       website: "Devika Web Solutions",
     };
 
     try {
-      await emailjs.send(
+      const response = await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
         templateParams,
         EMAILJS_PUBLIC_KEY
       );
+
+      console.log(
+        "EmailJS success:",
+        response.status,
+        response.text
+      );
+
+      /*
+        SUCCESS ONLY AFTER EMAILJS SUCCESS.
+        Clicking "I've Completed Payment" alone
+        NEVER shows success.
+      */
 
       setSubmitted(true);
     } catch (err) {
@@ -585,7 +656,7 @@ function ResourceModal({ resource, onClose }) {
       );
 
       setError(
-        "Payment details submit nahi ho paaye. Please try again."
+        "Payment details could not be submitted. Please try again."
       );
     } finally {
       setSending(false);
@@ -606,7 +677,7 @@ function ResourceModal({ resource, onClose }) {
           flex
           items-center
           justify-center
-          bg-slate-950/55
+          bg-slate-950/60
           px-3
           py-4
           backdrop-blur-md
@@ -615,8 +686,8 @@ function ResourceModal({ resource, onClose }) {
         <motion.div
           initial={{
             opacity: 0,
-            y: 20,
-            scale: 0.96,
+            y: 18,
+            scale: 0.97,
           }}
           animate={{
             opacity: 1,
@@ -625,11 +696,11 @@ function ResourceModal({ resource, onClose }) {
           }}
           exit={{
             opacity: 0,
-            y: 15,
-            scale: 0.97,
+            y: 12,
+            scale: 0.98,
           }}
           transition={{
-            duration: 0.3,
+            duration: 0.25,
             ease: EASE,
           }}
           onClick={(event) =>
@@ -638,28 +709,30 @@ function ResourceModal({ resource, onClose }) {
           className="
             relative
             w-full
-            max-w-[390px]
-            max-h-[90vh]
+            max-w-[360px]
+            max-h-[82vh]
             overflow-y-auto
-            rounded-[24px]
+            rounded-[22px]
             border
-            border-white/70
-            bg-white/95
+            border-white/80
+            bg-white
             p-4
-            shadow-[0_30px_90px_rgba(15,23,42,0.30)]
-            backdrop-blur-xl
+            shadow-[0_30px_80px_rgba(15,23,42,0.30)]
             sm:max-w-md
+            sm:max-h-[88vh]
             sm:p-6
           "
         >
+          {/* Glow */}
+
           <div
             className="
               pointer-events-none
               absolute
-              -right-16
-              -top-16
-              h-32
-              w-32
+              -right-20
+              -top-20
+              h-36
+              w-36
               rounded-full
               bg-sky-200/50
               blur-3xl
@@ -675,7 +748,7 @@ function ResourceModal({ resource, onClose }) {
               absolute
               right-3
               top-3
-              z-20
+              z-30
               flex
               h-8
               w-8
@@ -688,7 +761,7 @@ function ResourceModal({ resource, onClose }) {
               text-slate-500
               shadow-sm
               transition
-              hover:bg-slate-900
+              hover:bg-slate-950
               hover:text-white
             "
           >
@@ -700,13 +773,13 @@ function ResourceModal({ resource, onClose }) {
           ================================================= */}
 
           {submitted ? (
-            <div className="relative py-7 text-center sm:py-10">
+            <div className="relative py-6 text-center">
               <div
                 className="
                   mx-auto
                   flex
-                  h-16
-                  w-16
+                  h-14
+                  w-14
                   items-center
                   justify-center
                   rounded-full
@@ -716,25 +789,25 @@ function ResourceModal({ resource, onClose }) {
                   ring-emerald-50/60
                 "
               >
-                <CheckCircle2 className="h-8 w-8" />
+                <CheckCircle2 className="h-7 w-7" />
               </div>
 
-              <h2 className="mt-5 text-xl font-bold text-slate-900">
+              <h2 className="mt-4 text-lg font-bold text-slate-900">
                 Payment Submitted
               </h2>
 
-              <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-slate-500">
+              <p className="mx-auto mt-2 max-w-xs text-xs leading-5 text-slate-500">
                 Your payment details have been submitted successfully.
               </p>
 
               <div
                 className="
-                  mt-5
-                  rounded-2xl
+                  mt-4
+                  rounded-xl
                   border
                   border-slate-200
                   bg-slate-50
-                  p-4
+                  p-3.5
                   text-left
                 "
               >
@@ -742,31 +815,31 @@ function ResourceModal({ resource, onClose }) {
                   Resource
                 </p>
 
-                <p className="mt-1 text-sm font-semibold text-slate-900">
+                <p className="mt-1 text-xs font-semibold text-slate-900">
                   {resource.title}
                 </p>
 
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-xs text-slate-500">
+                <div className="mt-2.5 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-500">
                     Amount
                   </span>
 
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-xs font-bold text-slate-900">
                     {resource.price}
                   </span>
                 </div>
               </div>
 
-              <p className="mt-4 text-[10px] leading-4 text-slate-400">
-                Your payment will be verified manually. Access details
-                will be shared after confirmation.
+              <p className="mt-3 text-[9px] leading-4 text-slate-400">
+                Your payment will be verified manually.
+                Access details will be shared after confirmation.
               </p>
 
               <button
                 type="button"
                 onClick={onClose}
                 className="
-                  mt-5
+                  mt-4
                   w-full
                   rounded-xl
                   bg-slate-950
@@ -790,14 +863,15 @@ function ResourceModal({ resource, onClose }) {
             <div className="relative">
               <button
                 type="button"
-                onClick={() =>
-                  setPaymentStep("payment")
-                }
+                onClick={() => {
+                  setPaymentStep("payment");
+                  setError("");
+                }}
                 className="
-                  mb-4
+                  mb-3
                   inline-flex
                   items-center
-                  gap-1.5
+                  gap-1
                   text-[10px]
                   font-semibold
                   text-slate-500
@@ -805,36 +879,35 @@ function ResourceModal({ resource, onClose }) {
                   hover:text-sky-600
                 "
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
+                <ArrowLeft className="h-3 w-3" />
                 Back to payment
               </button>
 
-              <div className="flex items-center gap-3 pr-8">
+              <div className="flex items-center gap-2.5 pr-8">
                 <div
                   className="
                     flex
-                    h-11
-                    w-11
+                    h-10
+                    w-10
                     shrink-0
                     items-center
                     justify-center
-                    rounded-2xl
+                    rounded-xl
                     bg-gradient-to-br
                     from-sky-500
                     to-blue-700
                     text-white
-                    shadow-[0_8px_20px_rgba(14,165,233,0.25)]
                   "
                 >
-                  <CheckCircle2 className="h-5 w-5" />
+                  <CheckCircle2 className="h-4.5 w-4.5" />
                 </div>
 
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-sky-600">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-sky-600">
                     Payment Confirmation
                   </p>
 
-                  <h2 className="mt-1 text-lg font-bold leading-tight text-slate-900">
+                  <h2 className="mt-0.5 text-base font-bold leading-tight text-slate-900">
                     Confirm your payment
                   </h2>
                 </div>
@@ -842,21 +915,21 @@ function ResourceModal({ resource, onClose }) {
 
               <div
                 className="
-                  mt-5
-                  rounded-2xl
+                  mt-4
+                  rounded-xl
                   border
                   border-sky-100
                   bg-sky-50/70
-                  p-4
+                  p-3
                 "
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-slate-400">
                       Resource
                     </p>
 
-                    <p className="mt-1 text-sm font-bold text-slate-900">
+                    <p className="mt-0.5 truncate text-xs font-bold text-slate-900">
                       {resource.title}
                     </p>
                   </div>
@@ -866,9 +939,9 @@ function ResourceModal({ resource, onClose }) {
                       shrink-0
                       rounded-full
                       bg-white
-                      px-3
-                      py-1.5
-                      text-xs
+                      px-2.5
+                      py-1
+                      text-[11px]
                       font-black
                       text-sky-600
                       shadow-sm
@@ -881,12 +954,12 @@ function ResourceModal({ resource, onClose }) {
 
               <form
                 onSubmit={handleSubmitConfirmation}
-                className="mt-5 space-y-3"
+                className="mt-4 space-y-2.5"
               >
                 {/* NAME */}
 
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                  <label className="mb-1 block text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500">
                     Your Name
                   </label>
 
@@ -894,16 +967,17 @@ function ResourceModal({ resource, onClose }) {
                     name="name"
                     type="text"
                     required
+                    autoComplete="name"
                     placeholder="Enter your name"
                     className="
                       w-full
-                      rounded-xl
+                      rounded-lg
                       border
                       border-slate-200
                       bg-white
-                      px-3.5
-                      py-3
-                      text-xs
+                      px-3
+                      py-2.5
+                      text-[11px]
                       text-slate-800
                       outline-none
                       transition
@@ -918,7 +992,7 @@ function ResourceModal({ resource, onClose }) {
                 {/* EMAIL */}
 
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                  <label className="mb-1 block text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500">
                     Email Address
                   </label>
 
@@ -926,16 +1000,17 @@ function ResourceModal({ resource, onClose }) {
                     name="email"
                     type="email"
                     required
+                    autoComplete="email"
                     placeholder="Enter your email"
                     className="
                       w-full
-                      rounded-xl
+                      rounded-lg
                       border
                       border-slate-200
                       bg-white
-                      px-3.5
-                      py-3
-                      text-xs
+                      px-3
+                      py-2.5
+                      text-[11px]
                       text-slate-800
                       outline-none
                       transition
@@ -950,7 +1025,7 @@ function ResourceModal({ resource, onClose }) {
                 {/* UTR */}
 
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                  <label className="mb-1 block text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500">
                     Transaction ID / UTR
                   </label>
 
@@ -958,16 +1033,17 @@ function ResourceModal({ resource, onClose }) {
                     name="utr"
                     type="text"
                     required
+                    autoComplete="off"
                     placeholder="Enter transaction ID / UTR"
                     className="
                       w-full
-                      rounded-xl
+                      rounded-lg
                       border
                       border-slate-200
                       bg-white
-                      px-3.5
-                      py-3
-                      text-xs
+                      px-3
+                      py-2.5
+                      text-[11px]
                       text-slate-800
                       outline-none
                       transition
@@ -982,24 +1058,24 @@ function ResourceModal({ resource, onClose }) {
                 {/* MESSAGE */}
 
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                  <label className="mb-1 block text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500">
                     Message
                   </label>
 
                   <textarea
                     name="message"
-                    rows="3"
+                    rows={2}
                     placeholder="Optional message..."
                     className="
                       w-full
                       resize-none
-                      rounded-xl
+                      rounded-lg
                       border
                       border-slate-200
                       bg-white
-                      px-3.5
-                      py-3
-                      text-xs
+                      px-3
+                      py-2.5
+                      text-[11px]
                       text-slate-800
                       outline-none
                       transition
@@ -1016,7 +1092,7 @@ function ResourceModal({ resource, onClose }) {
                 {error && (
                   <div
                     className="
-                      rounded-xl
+                      rounded-lg
                       border
                       border-red-100
                       bg-red-50
@@ -1043,18 +1119,17 @@ function ResourceModal({ resource, onClose }) {
                     items-center
                     justify-center
                     gap-2
-                    rounded-xl
+                    rounded-lg
                     bg-gradient-to-r
                     from-slate-950
                     to-slate-800
                     px-5
-                    py-3.5
-                    text-xs
+                    py-3
+                    text-[11px]
                     font-bold
                     text-white
-                    shadow-[0_10px_25px_rgba(15,23,42,0.18)]
+                    shadow-[0_8px_20px_rgba(15,23,42,0.18)]
                     transition-all
-                    hover:-translate-y-0.5
                     hover:from-sky-600
                     hover:to-blue-700
                     disabled:cursor-not-allowed
@@ -1080,54 +1155,52 @@ function ResourceModal({ resource, onClose }) {
                   ) : (
                     <>
                       Submit Payment Details
-
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                     </>
                   )}
                 </button>
               </form>
 
-              <p className="mt-3 text-center text-[9px] leading-4 text-slate-400">
+              <p className="mt-2.5 text-center text-[8px] leading-3.5 text-slate-400">
                 Please make sure your transaction ID / UTR is correct.
               </p>
             </div>
           ) : (
             /* =================================================
-               PAYMENT / QR SCREEN
+               PAYMENT SCREEN
             ================================================= */
 
             <>
-              <div className="relative flex items-center gap-3 pr-8">
+              <div className="relative flex items-center gap-2.5 pr-8">
                 <div
                   className={`
                     flex
-                    h-11
-                    w-11
+                    h-10
+                    w-10
                     shrink-0
                     items-center
                     justify-center
-                    rounded-2xl
+                    rounded-xl
                     ${
                       isTrial
                         ? "bg-gradient-to-br from-emerald-500 to-green-600"
                         : "bg-gradient-to-br from-sky-500 to-blue-700"
                     }
                     text-white
-                    shadow-[0_8px_20px_rgba(14,165,233,0.25)]
                   `}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4.5 w-4.5" />
                 </div>
 
-                <div>
+                <div className="min-w-0">
                   <span
                     className="
                       inline-flex
                       rounded-full
                       bg-sky-50
-                      px-2.5
-                      py-1
-                      text-[9px]
+                      px-2
+                      py-0.5
+                      text-[8px]
                       font-bold
                       tracking-[0.14em]
                       text-sky-600
@@ -1136,17 +1209,17 @@ function ResourceModal({ resource, onClose }) {
                     {resource.tag}
                   </span>
 
-                  <h2 className="mt-1 text-lg font-bold leading-tight text-slate-900">
+                  <h2 className="mt-0.5 truncate text-base font-bold leading-tight text-slate-900">
                     {resource.title}
                   </h2>
                 </div>
               </div>
 
-              <p className="relative mt-4 text-xs leading-5 text-slate-500">
+              <p className="relative mt-3 text-[11px] leading-4.5 text-slate-500">
                 {resource.description}
               </p>
 
-              <div className="relative mt-4 grid grid-cols-2 gap-2">
+              <div className="relative mt-3 grid grid-cols-2 gap-1.5">
                 {[
                   "Structured content",
                   "Practical resources",
@@ -1159,18 +1232,18 @@ function ResourceModal({ resource, onClose }) {
                       flex
                       items-center
                       gap-1.5
-                      rounded-xl
+                      rounded-lg
                       border
                       border-slate-100
                       bg-slate-50/80
-                      px-2.5
-                      py-2
-                      text-[10px]
+                      px-2
+                      py-1.5
+                      text-[9px]
                       font-medium
                       text-slate-600
                     "
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                    <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-500" />
 
                     <span>{item}</span>
                   </div>
@@ -1182,28 +1255,28 @@ function ResourceModal({ resource, onClose }) {
               <div
                 className="
                   relative
-                  mt-5
+                  mt-3
                   overflow-hidden
-                  rounded-2xl
+                  rounded-xl
                   border
                   border-slate-200
                   bg-gradient-to-br
                   from-slate-50
                   via-white
                   to-sky-50
-                  p-4
+                  p-3
                 "
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                    <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-slate-400">
                       Get access
                     </p>
 
                     <p
                       className={`
                         mt-0.5
-                        text-xl
+                        text-lg
                         font-black
                         ${
                           isTrial
@@ -1216,20 +1289,7 @@ function ResourceModal({ resource, onClose }) {
                     </p>
                   </div>
 
-                  <div
-                    className={`
-                      rounded-full
-                      px-2.5
-                      py-1
-                      text-[9px]
-                      font-bold
-                      ${
-                        isTrial
-                          ? "bg-emerald-50 text-emerald-600"
-                          : "bg-emerald-50 text-emerald-600"
-                      }
-                    `}
-                  >
+                  <div className="rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-bold text-emerald-600">
                     ONE-TIME
                   </div>
                 </div>
@@ -1238,46 +1298,121 @@ function ResourceModal({ resource, onClose }) {
 
                 <div
                   className="
-                    mt-3
+                    mt-2.5
                     flex
                     flex-col
                     items-center
-                    rounded-xl
+                    rounded-lg
                     border
                     border-slate-100
                     bg-white
-                    p-3
+                    p-2.5
                     shadow-sm
                   "
                 >
                   <img
                     src="/payment-qr.png"
-                    alt="Payment QR"
+                    alt="Fampay UPI Payment QR"
                     className="
-                      h-28
-                      w-28
+                      h-24
+                      w-24
                       rounded-lg
                       object-contain
-                      sm:h-32
-                      sm:w-32
+                      sm:h-28
+                      sm:w-28
                     "
                   />
 
-                  <p className="mt-2 text-[10px] font-semibold text-slate-500">
-                    Scan & Pay ₹{isTrial ? "1" : "via UPI"}
+                  <p className="mt-1.5 text-[9px] font-semibold text-slate-500">
+                    Scan & Pay {resource.price}
                   </p>
 
                   {isTrial && (
-                    <span className="mt-1 text-[9px] font-semibold text-emerald-600">
+                    <span className="mt-0.5 text-[8px] font-semibold text-emerald-600">
                       Trial access — only ₹1
                     </span>
                   )}
+
+                  <div
+                    className="
+                      mt-2
+                      flex
+                      max-w-full
+                      items-center
+                      gap-1.5
+                      rounded-full
+                      bg-slate-50
+                      px-2.5
+                      py-1.5
+                      ring-1
+                      ring-slate-100
+                    "
+                  >
+                    <Smartphone className="h-3 w-3 shrink-0 text-sky-500" />
+
+                    <span className="truncate text-[8px] font-medium text-slate-500">
+                      UPI: {FAMPAY_UPI_ID}
+                    </span>
+                  </div>
                 </div>
+
+                {/* FAMPAY BUTTON */}
+
+                {/* <button
+                  type="button"
+                  onClick={handlePayViaFampay}
+                  className="
+                    mt-2.5
+                    flex
+                    w-full
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-lg
+                    bg-gradient-to-r
+                    from-sky-600
+                    to-blue-700
+                    px-4
+                    py-2.5
+                    text-[10px]
+                    font-bold
+                    text-white
+                    shadow-[0_8px_18px_rgba(14,165,233,0.20)]
+                    transition
+                    hover:from-sky-500
+                    hover:to-blue-600
+                  "
+                >
+                  <Smartphone className="h-3.5 w-3.5" />
+                  Pay via Fampay
+                </button> */}
               </div>
+
+              {/* ERROR */}
+
+              {error && (
+                <div
+                  className="
+                    relative
+                    mt-2.5
+                    rounded-lg
+                    border
+                    border-red-100
+                    bg-red-50
+                    px-3
+                    py-2
+                    text-[9px]
+                    leading-4
+                    text-red-600
+                  "
+                >
+                  {error}
+                </div>
+              )}
 
               {/* COMPLETED PAYMENT */}
 
-              <div className="relative mt-4">
+              <div className="relative mt-3">
                 <button
                   type="button"
                   onClick={handleCompletedPayment}
@@ -1288,21 +1423,16 @@ function ResourceModal({ resource, onClose }) {
                     items-center
                     justify-center
                     gap-2
-                    rounded-xl
-                    bg-gradient-to-r
-                    from-slate-950
-                    to-slate-800
+                    rounded-lg
+                    bg-slate-950
                     px-5
-                    py-3
-                    text-xs
+                    py-2.5
+                    text-[10px]
                     font-bold
                     text-white
-                    shadow-[0_10px_25px_rgba(15,23,42,0.18)]
+                    shadow-[0_8px_20px_rgba(15,23,42,0.18)]
                     transition-all
-                    duration-300
-                    hover:-translate-y-0.5
-                    hover:from-sky-600
-                    hover:to-blue-700
+                    hover:bg-sky-600
                   "
                 >
                   I've Completed Payment
@@ -1318,9 +1448,8 @@ function ResourceModal({ resource, onClose }) {
                 </button>
               </div>
 
-              <p className="relative mt-3 text-center text-[9px] leading-4 text-slate-400">
-                After payment, click the button above to submit your
-                payment details.
+              <p className="relative mt-2 text-center text-[8px] leading-3.5 text-slate-400">
+                After payment, submit your transaction ID / UTR for verification.
               </p>
             </>
           )}
@@ -1374,15 +1503,12 @@ export default function Resources() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-
       {/* =================================================
           HERO
       ================================================= */}
 
       <header className="relative overflow-hidden">
-
         <div className="pointer-events-none absolute inset-0">
-
           <div
             className="
               absolute
@@ -1420,7 +1546,6 @@ export default function Resources() {
               to-transparent
             "
           />
-
         </div>
 
         <div
@@ -1437,17 +1562,10 @@ export default function Resources() {
             lg:px-10
           "
         >
-
           <motion.a
             href="/"
-            initial={{
-              opacity: 0,
-              x: -15,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{
               duration: 0.5,
               ease: EASE,
@@ -1498,7 +1616,6 @@ export default function Resources() {
               lg:gap-12
             "
           >
-
             <motion.div
               initial="hidden"
               animate="visible"
@@ -1511,7 +1628,6 @@ export default function Resources() {
                 },
               }}
             >
-
               <motion.div variants={fadeUp}>
                 <span
                   className="
@@ -1533,7 +1649,6 @@ export default function Resources() {
                   "
                 >
                   <Sparkles className="h-3.5 w-3.5" />
-
                   DEVELOPER RESOURCE HUB
                 </span>
               </motion.div>
@@ -1607,7 +1722,7 @@ export default function Resources() {
                     value: "Developer Notes",
                   },
                 ].map((item) => {
-                  const Icon = item.icon;
+                  const ItemIcon = item.icon;
 
                   return (
                     <div
@@ -1630,14 +1745,12 @@ export default function Resources() {
                         sm:text-xs
                       "
                     >
-                      <Icon className="h-3.5 w-3.5 text-sky-500" />
-
+                      <ItemIcon className="h-3.5 w-3.5 text-sky-500" />
                       {item.value}
                     </div>
                   );
                 })}
               </motion.div>
-
             </motion.div>
 
             {/* JOURNEY CARD */}
@@ -1660,7 +1773,6 @@ export default function Resources() {
               }}
               className="relative hidden lg:block"
             >
-
               <div
                 className="
                   absolute
@@ -1684,9 +1796,7 @@ export default function Resources() {
                   backdrop-blur-xl
                 "
               >
-
                 <div className="flex items-center justify-between">
-
                   <div
                     className="
                       flex
@@ -1715,7 +1825,6 @@ export default function Resources() {
                   >
                     KEEP LEARNING
                   </span>
-
                 </div>
 
                 <h3 className="mt-7 text-xl font-bold text-slate-900">
@@ -1728,7 +1837,6 @@ export default function Resources() {
                 </p>
 
                 <div className="mt-7 space-y-4">
-
                   {[
                     {
                       label: "Learn fundamentals",
@@ -1744,23 +1852,15 @@ export default function Resources() {
                     },
                   ].map((item) => (
                     <div key={item.label}>
-
                       <div className="flex justify-between text-[11px] font-medium text-slate-500">
-
-                        <span>
-                          {item.label}
-                        </span>
+                        <span>{item.label}</span>
 
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-
                       </div>
 
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-
                         <motion.div
-                          initial={{
-                            width: 0,
-                          }}
+                          initial={{ width: 0 }}
                           animate={{
                             width: item.progress,
                           }}
@@ -1777,18 +1877,12 @@ export default function Resources() {
                             to-sky-600
                           "
                         />
-
                       </div>
-
                     </div>
                   ))}
-
                 </div>
-
               </div>
-
             </motion.div>
-
           </div>
         </div>
       </header>
@@ -1809,7 +1903,6 @@ export default function Resources() {
           lg:px-10
         "
       >
-
         <div
           className="
             flex
@@ -1824,9 +1917,7 @@ export default function Resources() {
             lg:justify-between
           "
         >
-
           <div>
-
             <p
               className="
                 text-[10px]
@@ -1867,13 +1958,11 @@ export default function Resources() {
               Start with a roadmap, prepare for interviews or pick up
               concise notes for quick revision.
             </p>
-
           </div>
 
           {/* SEARCH */}
 
           <div className="relative w-full lg:max-w-xs">
-
             <Search
               className="
                 pointer-events-none
@@ -1914,17 +2003,13 @@ export default function Resources() {
                 sm:text-sm
               "
             />
-
           </div>
-
         </div>
 
         {/* CATEGORIES */}
 
         <div className="mt-7 flex gap-2 overflow-x-auto pb-2 sm:mt-8">
-
           {RESOURCE_CATEGORIES.map((category) => {
-
             const active =
               activeCategory === category.id;
 
@@ -1959,7 +2044,6 @@ export default function Resources() {
               </button>
             );
           })}
-
         </div>
 
         {/* RESOURCE GRID */}
@@ -1977,9 +2061,7 @@ export default function Resources() {
             sm:gap-5
           "
         >
-
           <AnimatePresence mode="popLayout">
-
             {filteredResources.map((resource) => (
               <ResourceCard
                 key={resource.id}
@@ -1987,9 +2069,7 @@ export default function Resources() {
                 onExplore={setSelectedResource}
               />
             ))}
-
           </AnimatePresence>
-
         </motion.div>
 
         {/* EMPTY */}
@@ -2008,7 +2088,6 @@ export default function Resources() {
               text-center
             "
           >
-
             <Search className="mx-auto h-8 w-8 text-slate-300" />
 
             <h3 className="mt-4 text-lg font-semibold text-slate-900">
@@ -2018,7 +2097,6 @@ export default function Resources() {
             <p className="mt-2 text-sm text-slate-500">
               Try another keyword or choose a different category.
             </p>
-
           </div>
         )}
 
@@ -2044,7 +2122,6 @@ export default function Resources() {
             sm:py-11
           "
         >
-
           <div
             className="
               pointer-events-none
@@ -2060,7 +2137,6 @@ export default function Resources() {
           />
 
           <div className="relative">
-
             <div
               className="
                 mx-auto
@@ -2120,9 +2196,7 @@ export default function Resources() {
               More roadmaps, cheat sheets, notes and interview preparation
               resources will be added regularly.
             </p>
-
           </div>
-
         </section>
 
         {/* BOTTOM CTA */}
@@ -2141,7 +2215,6 @@ export default function Resources() {
             sm:py-12
           "
         >
-
           <div
             className="
               pointer-events-none
@@ -2167,9 +2240,7 @@ export default function Resources() {
               sm:justify-between
             "
           >
-
             <div>
-
               <span
                 className="
                   inline-flex
@@ -2186,7 +2257,6 @@ export default function Resources() {
                 "
               >
                 <GitBranch className="h-3 w-3" />
-
                 BUILD YOUR PATH
               </span>
 
@@ -2218,7 +2288,6 @@ export default function Resources() {
                 New roadmaps, interview questions and developer resources
                 will be added regularly.
               </p>
-
             </div>
 
             <div
@@ -2238,11 +2307,8 @@ export default function Resources() {
             >
               <Code2 className="h-6 w-6" />
             </div>
-
           </div>
-
         </section>
-
       </main>
 
       {/* =================================================
@@ -2259,7 +2325,6 @@ export default function Resources() {
           />
         )}
       </AnimatePresence>
-
     </div>
   );
 }

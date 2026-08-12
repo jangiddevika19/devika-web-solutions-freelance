@@ -31,6 +31,17 @@ const EMAILJS_TEMPLATE_ID = "template_3i9x41q";
 const EMAILJS_PUBLIC_KEY = "_WgZhn1NzggSPGWvl";
 
 /* =========================================================
+   FAMPAY CONFIG
+========================================================= */
+
+const FAMPAY_UPI_ID = "YOUR_FAMPAY_UPI_ID";
+
+/*
+  Put your actual FamPay UPI QR inside:
+  public/payment-qr.png
+*/
+
+/* =========================================================
    RESOURCE CATEGORIES
 ========================================================= */
 
@@ -58,6 +69,20 @@ const RESOURCE_CATEGORIES = [
 ========================================================= */
 
 const RESOURCES = [
+  {
+    id: 0,
+    icon: Sparkles,
+    category: "notes",
+    tag: "TRIAL",
+    title: "Developer Resource Trial",
+    description:
+      "Try a premium developer resource for just ₹1 before purchasing a complete resource.",
+    level: "Trial Access",
+    format: "Trial Resource",
+    price: "₹1",
+    featured: true,
+  },
+
   {
     id: 1,
     icon: BookOpen,
@@ -263,9 +288,34 @@ function ResourceCard({ resource, onExplore }) {
         "
       />
 
-      <div className="relative flex items-start justify-between gap-3">
+      {resource.id === 0 && (
         <div
           className="
+            absolute
+            left-4
+            top-4
+            z-10
+            rounded-full
+            bg-gradient-to-r
+            from-emerald-500
+            to-green-600
+            px-2.5
+            py-1
+            text-[8px]
+            font-black
+            uppercase
+            tracking-[0.12em]
+            text-white
+            shadow-lg
+          "
+        >
+          Try for ₹1
+        </div>
+      )}
+
+      <div className="relative flex items-start justify-between gap-3">
+        <div
+          className={`
             flex
             h-11
             w-11
@@ -273,10 +323,11 @@ function ResourceCard({ resource, onExplore }) {
             items-center
             justify-center
             rounded-2xl
-            bg-sky-50
-            text-sky-600
-            ring-1
-            ring-sky-100
+            ${
+              resource.id === 0
+                ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100"
+                : "bg-sky-50 text-sky-600 ring-1 ring-sky-100"
+            }
             transition-all
             duration-300
             group-hover:scale-105
@@ -284,7 +335,7 @@ function ResourceCard({ resource, onExplore }) {
             group-hover:text-white
             sm:h-12
             sm:w-12
-          "
+          `}
         >
           <Icon className="h-5 w-5" />
         </div>
@@ -408,13 +459,15 @@ function ResourceCard({ resource, onExplore }) {
           </p>
 
           <p
-            className="
+            className={`
               mt-0.5
-              text-lg
               font-bold
-              text-slate-900
-              sm:text-xl
-            "
+              ${
+                resource.id === 0
+                  ? "text-xl text-emerald-600"
+                  : "text-lg text-slate-900 sm:text-xl"
+              }
+            `}
           >
             {resource.price}
           </p>
@@ -450,7 +503,8 @@ function ResourceCard({ resource, onExplore }) {
             sm:text-xs
           "
         >
-          Explore
+          {resource.id === 0 ? "Try ₹1" : "Explore"}
+
           <ArrowUpRight className="h-3.5 w-3.5" />
         </motion.button>
       </div>
@@ -471,19 +525,12 @@ function ResourceModal({ resource, onClose }) {
   if (!resource) return null;
 
   const Icon = resource.icon;
-
-  /* =========================================================
-     PAYMENT COMPLETED
-  ========================================================= */
+  const isTrial = resource.id === 0;
 
   const handleCompletedPayment = () => {
     setPaymentStep("confirmation");
     setError("");
   };
-
-  /* =========================================================
-     SUBMIT PAYMENT CONFIRMATION
-  ========================================================= */
 
   const handleSubmitConfirmation = async (event) => {
     event.preventDefault();
@@ -494,63 +541,37 @@ function ResourceModal({ resource, onClose }) {
     const form = event.currentTarget;
     const formData = new FormData(form);
 
-    const name = formData.get("name")?.trim();
-    const email = formData.get("email")?.trim();
-    const utr = formData.get("utr")?.trim();
-    const message = formData.get("message")?.trim();
-
-    /* =====================================================
-       BASIC VALIDATION
-    ===================================================== */
-
-    if (!name) {
-      setError("Please enter your name.");
-      setSending(false);
-      return;
-    }
-
-    if (!email) {
-      setError("Please enter your email address.");
-      setSending(false);
-      return;
-    }
-
-    if (!utr) {
-      setError("Please enter your Transaction ID / UTR.");
-      setSending(false);
-      return;
-    }
-
-    /*
-      Most UTR / transaction IDs have a reasonable length.
-      This prevents very short fake/test values.
-    */
-
-    if (utr.length < 8) {
-      setError(
-        "Please enter a valid Transaction ID / UTR. It should contain at least 8 characters."
-      );
-      setSending(false);
-      return;
-    }
-
-    /* =====================================================
-       EMAILJS TEMPLATE VARIABLES
-    ===================================================== */
+    const name = formData.get("name");
+    const email = formData.get("email");
+    const utr = formData.get("utr");
+    const message = formData.get("message");
 
     const templateParams = {
+      name,
+      email,
+
+      transaction_id: utr,
+      utr,
+
+      resource_name: resource.title,
       resource_title: resource.title,
+
       amount: resource.price,
-
-      customer_name: name,
-      customer_email: email,
-
-      utr: utr,
+      price: resource.price,
 
       message:
-        message || "No additional message was provided.",
+        message ||
+        "No additional message was provided.",
+
+      subject: `New Resource Payment Verification - ${resource.title}`,
 
       reply_to: email,
+
+      website: "Devika Web Solutions",
+
+      payment_method: "FamPay UPI",
+
+      verification_status: "PENDING MANUAL VERIFICATION",
     };
 
     try {
@@ -561,6 +582,13 @@ function ResourceModal({ resource, onClose }) {
         EMAILJS_PUBLIC_KEY
       );
 
+      /*
+        IMPORTANT:
+        This does NOT mean payment is verified.
+        It only means the customer's payment details
+        were successfully sent for verification.
+      */
+
       setSubmitted(true);
     } catch (err) {
       console.error(
@@ -569,7 +597,7 @@ function ResourceModal({ resource, onClose }) {
       );
 
       setError(
-        "Payment details submit nahi ho paaye. Please check your internet connection and try again."
+        "Payment details submit nahi ho paaye. Please try again."
       );
     } finally {
       setSending(false);
@@ -622,7 +650,9 @@ function ResourceModal({ resource, onClose }) {
             duration: 0.3,
             ease: EASE,
           }}
-          onClick={(event) => event.stopPropagation()}
+          onClick={(event) =>
+            event.stopPropagation()
+          }
           className="
             relative
             w-full
@@ -684,7 +714,7 @@ function ResourceModal({ resource, onClose }) {
           </button>
 
           {/* =================================================
-              SUCCESS
+              VERIFICATION PENDING
           ================================================= */}
 
           {submitted ? (
@@ -698,22 +728,56 @@ function ResourceModal({ resource, onClose }) {
                   items-center
                   justify-center
                   rounded-full
-                  bg-emerald-50
-                  text-emerald-600
+                  bg-amber-50
+                  text-amber-600
                   ring-8
-                  ring-emerald-50/60
+                  ring-amber-50/60
                 "
               >
                 <CheckCircle2 className="h-8 w-8" />
               </div>
 
               <h2 className="mt-5 text-xl font-bold text-slate-900">
-                Details Submitted
+                Payment Verification Pending
               </h2>
 
               <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-slate-500">
-                Your payment details have been submitted successfully.
+                Your payment details have been submitted
+                successfully.
               </p>
+
+              <div
+                className="
+                  mt-5
+                  rounded-2xl
+                  border
+                  border-amber-100
+                  bg-amber-50
+                  p-4
+                  text-left
+                "
+              >
+                <p
+                  className="
+                    text-[9px]
+                    font-bold
+                    uppercase
+                    tracking-[0.14em]
+                    text-amber-600
+                  "
+                >
+                  Verification Status
+                </p>
+
+                <p className="mt-1 text-sm font-semibold text-slate-900">
+                  Waiting for payment verification
+                </p>
+
+                <p className="mt-2 text-xs leading-5 text-slate-500">
+                  Your transaction ID will be checked
+                  manually before the resource is shared.
+                </p>
+              </div>
 
               <div
                 className="
@@ -745,28 +809,10 @@ function ResourceModal({ resource, onClose }) {
                 </div>
               </div>
 
-              <div
-                className="
-                  mt-4
-                  rounded-xl
-                  border
-                  border-amber-100
-                  bg-amber-50
-                  px-3
-                  py-3
-                  text-left
-                "
-              >
-                <p className="text-[10px] font-bold text-amber-700">
-                  Payment verification pending
-                </p>
-
-                <p className="mt-1 text-[10px] leading-4 text-amber-600">
-                  Your payment will be manually verified. Resource
-                  access will be shared only after the payment is
-                  confirmed.
-                </p>
-              </div>
+              <p className="mt-4 text-[10px] leading-4 text-slate-400">
+                Resource access will be shared only after
+                the payment is verified.
+              </p>
 
               <button
                 type="button"
@@ -796,10 +842,9 @@ function ResourceModal({ resource, onClose }) {
             <div className="relative">
               <button
                 type="button"
-                onClick={() => {
-                  setPaymentStep("payment");
-                  setError("");
-                }}
+                onClick={() =>
+                  setPaymentStep("payment")
+                }
                 className="
                   mb-4
                   inline-flex
@@ -838,43 +883,18 @@ function ResourceModal({ resource, onClose }) {
 
                 <div>
                   <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-sky-600">
-                    Payment Confirmation
+                    Payment Verification
                   </p>
 
                   <h2 className="mt-1 text-lg font-bold leading-tight text-slate-900">
-                    Confirm your payment
+                    Submit your payment details
                   </h2>
                 </div>
               </div>
 
-              {/* PAYMENT WARNING */}
-
               <div
                 className="
                   mt-5
-                  rounded-2xl
-                  border
-                  border-amber-100
-                  bg-amber-50
-                  p-4
-                "
-              >
-                <p className="text-[10px] font-bold text-amber-700">
-                  Have you completed the payment?
-                </p>
-
-                <p className="mt-1 text-[10px] leading-4 text-amber-600">
-                  Please enter the exact Transaction ID / UTR from
-                  your UPI payment. Your payment will be manually
-                  verified before resource access is provided.
-                </p>
-              </div>
-
-              {/* RESOURCE */}
-
-              <div
-                className="
-                  mt-4
                   rounded-2xl
                   border
                   border-sky-100
@@ -911,8 +931,6 @@ function ResourceModal({ resource, onClose }) {
                 </div>
               </div>
 
-              {/* FORM */}
-
               <form
                 onSubmit={handleSubmitConfirmation}
                 className="mt-5 space-y-3"
@@ -928,7 +946,6 @@ function ResourceModal({ resource, onClose }) {
                     name="name"
                     type="text"
                     required
-                    autoComplete="name"
                     placeholder="Enter your name"
                     className="
                       w-full
@@ -961,7 +978,6 @@ function ResourceModal({ resource, onClose }) {
                     name="email"
                     type="email"
                     required
-                    autoComplete="email"
                     placeholder="Enter your email"
                     className="
                       w-full
@@ -986,22 +1002,15 @@ function ResourceModal({ resource, onClose }) {
                 {/* UTR */}
 
                 <div>
-                  <label className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
-                    <span>
-                      Transaction ID / UTR
-                    </span>
-
-                    <span className="text-red-500">
-                      Required
-                    </span>
+                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                    Transaction ID / UTR
                   </label>
 
                   <input
                     name="utr"
                     type="text"
                     required
-                    minLength={8}
-                    autoComplete="off"
+                    minLength={6}
                     placeholder="Enter transaction ID / UTR"
                     className="
                       w-full
@@ -1012,13 +1021,9 @@ function ResourceModal({ resource, onClose }) {
                       px-3.5
                       py-3
                       text-xs
-                      font-medium
-                      tracking-wide
                       text-slate-800
                       outline-none
                       transition
-                      placeholder:font-normal
-                      placeholder:tracking-normal
                       placeholder:text-slate-400
                       focus:border-sky-300
                       focus:ring-4
@@ -1027,8 +1032,8 @@ function ResourceModal({ resource, onClose }) {
                   />
 
                   <p className="mt-1.5 text-[9px] leading-4 text-slate-400">
-                    Enter the exact UTR shown in your UPI payment
-                    history.
+                    Enter the transaction ID shown after
+                    completing your UPI payment.
                   </p>
                 </div>
 
@@ -1064,18 +1069,31 @@ function ResourceModal({ resource, onClose }) {
                   />
                 </div>
 
+                {/* VERIFICATION NOTICE */}
+
+                <div
+                  className="
+                    rounded-xl
+                    border
+                    border-amber-100
+                    bg-amber-50
+                    px-3
+                    py-2.5
+                    text-[10px]
+                    leading-4
+                    text-amber-700
+                  "
+                >
+                  <strong>Important:</strong> Submitting
+                  the form does not automatically verify
+                  your payment. Your transaction will be
+                  checked before resource access is provided.
+                </div>
+
                 {/* ERROR */}
 
                 {error && (
-                  <motion.div
-                    initial={{
-                      opacity: 0,
-                      y: -5,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                    }}
+                  <div
                     className="
                       rounded-xl
                       border
@@ -1089,7 +1107,7 @@ function ResourceModal({ resource, onClose }) {
                     "
                   >
                     {error}
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* SUBMIT */}
@@ -1140,27 +1158,18 @@ function ResourceModal({ resource, onClose }) {
                     </>
                   ) : (
                     <>
-                      Submit Payment Details
+                      Submit for Verification
 
-                      <ArrowRight
-                        className="
-                          h-3.5
-                          w-3.5
-                          transition-transform
-                          group-hover:translate-x-1
-                        "
-                      />
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                     </>
                   )}
                 </button>
               </form>
 
-              <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2.5">
-                <p className="text-center text-[9px] leading-4 text-slate-400">
-                  🔒 Your resource will be shared only after the
-                  payment is manually verified.
-                </p>
-              </div>
+              <p className="mt-3 text-center text-[9px] leading-4 text-slate-400">
+                Please make sure your transaction ID / UTR
+                is correct.
+              </p>
             </div>
           ) : (
             /* =================================================
@@ -1170,7 +1179,7 @@ function ResourceModal({ resource, onClose }) {
             <>
               <div className="relative flex items-center gap-3 pr-8">
                 <div
-                  className="
+                  className={`
                     flex
                     h-11
                     w-11
@@ -1178,12 +1187,14 @@ function ResourceModal({ resource, onClose }) {
                     items-center
                     justify-center
                     rounded-2xl
-                    bg-gradient-to-br
-                    from-sky-500
-                    to-blue-700
+                    ${
+                      isTrial
+                        ? "bg-gradient-to-br from-emerald-500 to-green-600"
+                        : "bg-gradient-to-br from-sky-500 to-blue-700"
+                    }
                     text-white
                     shadow-[0_8px_20px_rgba(14,165,233,0.25)]
-                  "
+                  `}
                 >
                   <Icon className="h-5 w-5" />
                 </div>
@@ -1214,8 +1225,6 @@ function ResourceModal({ resource, onClose }) {
               <p className="relative mt-4 text-xs leading-5 text-slate-500">
                 {resource.description}
               </p>
-
-              {/* FEATURES */}
 
               <div className="relative mt-4 grid grid-cols-2 gap-2">
                 {[
@@ -1271,12 +1280,33 @@ function ResourceModal({ resource, onClose }) {
                       Get access
                     </p>
 
-                    <p className="mt-0.5 text-xl font-black text-slate-900">
+                    <p
+                      className={`
+                        mt-0.5
+                        text-xl
+                        font-black
+                        ${
+                          isTrial
+                            ? "text-emerald-600"
+                            : "text-slate-900"
+                        }
+                      `}
+                    >
                       {resource.price}
                     </p>
                   </div>
 
-                  <div className="rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-bold text-emerald-600">
+                  <div
+                    className="
+                      rounded-full
+                      bg-emerald-50
+                      px-2.5
+                      py-1
+                      text-[9px]
+                      font-bold
+                      text-emerald-600
+                    "
+                  >
                     ONE-TIME
                   </div>
                 </div>
@@ -1299,7 +1329,7 @@ function ResourceModal({ resource, onClose }) {
                 >
                   <img
                     src="/payment-qr.png"
-                    alt="UPI payment QR code"
+                    alt="FamPay UPI Payment QR"
                     className="
                       h-28
                       w-28
@@ -1310,38 +1340,27 @@ function ResourceModal({ resource, onClose }) {
                     "
                   />
 
-                  <p className="mt-2 text-[10px] font-semibold text-slate-500">
-                    Scan & Pay via UPI
+                  <p className="mt-2 text-[10px] font-bold text-slate-700">
+                    Pay via FamPay UPI
                   </p>
+
+                  <p className="mt-1 break-all text-center text-[10px] font-semibold text-sky-600">
+                    {FAMPAY_UPI_ID}
+                  </p>
+
+                  <p className="mt-1 text-center text-[9px] text-slate-400">
+                    Scan & pay using a supported UPI app
+                  </p>
+
+                  {isTrial && (
+                    <span className="mt-1 text-[9px] font-semibold text-emerald-600">
+                      Trial access — only ₹1
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* IMPORTANT NOTICE */}
-
-              <div
-                className="
-                  relative
-                  mt-4
-                  rounded-xl
-                  border
-                  border-amber-100
-                  bg-amber-50
-                  px-3
-                  py-3
-                "
-              >
-                <p className="text-[10px] font-bold text-amber-700">
-                  Important
-                </p>
-
-                <p className="mt-1 text-[9px] leading-4 text-amber-600">
-                  Complete the UPI payment first. After payment,
-                  you will need to enter your Transaction ID / UTR.
-                  Your payment will be verified manually.
-                </p>
-              </div>
-
-              {/* COMPLETED BUTTON */}
+              {/* COMPLETED PAYMENT */}
 
               <div className="relative mt-4">
                 <button
@@ -1371,7 +1390,7 @@ function ResourceModal({ resource, onClose }) {
                     hover:to-blue-700
                   "
                 >
-                  I've Completed Payment
+                  I’ve Paid — Submit for Verification
 
                   <ArrowRight
                     className="
@@ -1385,8 +1404,8 @@ function ResourceModal({ resource, onClose }) {
               </div>
 
               <p className="relative mt-3 text-center text-[9px] leading-4 text-slate-400">
-                After payment, click the button above to submit
-                your payment details.
+                After completing the payment, submit your
+                transaction ID for verification.
               </p>
             </>
           )}
@@ -1401,34 +1420,54 @@ function ResourceModal({ resource, onClose }) {
 ========================================================= */
 
 export default function Resources() {
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [selectedResource, setSelectedResource] = useState(null);
+  const [activeCategory, setActiveCategory] =
+    useState("all");
+
+  const [selectedResource, setSelectedResource] =
+    useState(null);
+
   const [search, setSearch] = useState("");
 
-  const filteredResources = RESOURCES.filter((resource) => {
-    const matchesCategory =
-      activeCategory === "all" ||
-      resource.category === activeCategory;
+  const filteredResources = RESOURCES.filter(
+    (resource) => {
+      const matchesCategory =
+        activeCategory === "all" ||
+        resource.category === activeCategory;
 
-    const searchText = search.toLowerCase().trim();
+      const searchText = search
+        .toLowerCase()
+        .trim();
 
-    const matchesSearch =
-      !searchText ||
-      resource.title.toLowerCase().includes(searchText) ||
-      resource.description.toLowerCase().includes(searchText) ||
-      resource.tag.toLowerCase().includes(searchText);
+      const matchesSearch =
+        !searchText ||
+        resource.title
+          .toLowerCase()
+          .includes(searchText) ||
+        resource.description
+          .toLowerCase()
+          .includes(searchText) ||
+        resource.tag
+          .toLowerCase()
+          .includes(searchText);
 
-    return matchesCategory && matchesSearch;
-  });
+      return (
+        matchesCategory &&
+        matchesSearch
+      );
+    }
+  );
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
+
       {/* =================================================
           HERO
       ================================================= */}
 
       <header className="relative overflow-hidden">
+
         <div className="pointer-events-none absolute inset-0">
+
           <div
             className="
               absolute
@@ -1466,6 +1505,7 @@ export default function Resources() {
               to-transparent
             "
           />
+
         </div>
 
         <div
@@ -1482,6 +1522,7 @@ export default function Resources() {
             lg:px-10
           "
         >
+
           <motion.a
             href="/"
             initial={{
@@ -1542,6 +1583,7 @@ export default function Resources() {
               lg:gap-12
             "
           >
+
             <motion.div
               initial="hidden"
               animate="visible"
@@ -1554,6 +1596,7 @@ export default function Resources() {
                 },
               }}
             >
+
               <motion.div variants={fadeUp}>
                 <span
                   className="
@@ -1575,6 +1618,7 @@ export default function Resources() {
                   "
                 >
                   <Sparkles className="h-3.5 w-3.5" />
+
                   DEVELOPER RESOURCE HUB
                 </span>
               </motion.div>
@@ -1625,9 +1669,10 @@ export default function Resources() {
                   sm:leading-7
                 "
               >
-                Practical roadmaps, interview questions, developer
-                notes and preparation resources designed to help
-                you move from learning to building with confidence.
+                Practical roadmaps, interview questions,
+                developer notes and preparation resources
+                designed to help you move from learning to
+                building with confidence.
               </motion.p>
 
               <motion.div
@@ -1672,14 +1717,16 @@ export default function Resources() {
                       "
                     >
                       <Icon className="h-3.5 w-3.5 text-sky-500" />
+
                       {item.value}
                     </div>
                   );
                 })}
               </motion.div>
+
             </motion.div>
 
-            {/* HERO CARD */}
+            {/* JOURNEY CARD */}
 
             <motion.div
               initial={{
@@ -1699,6 +1746,7 @@ export default function Resources() {
               }}
               className="relative hidden lg:block"
             >
+
               <div
                 className="
                   absolute
@@ -1722,7 +1770,9 @@ export default function Resources() {
                   backdrop-blur-xl
                 "
               >
+
                 <div className="flex items-center justify-between">
+
                   <div
                     className="
                       flex
@@ -1751,6 +1801,7 @@ export default function Resources() {
                   >
                     KEEP LEARNING
                   </span>
+
                 </div>
 
                 <h3 className="mt-7 text-xl font-bold text-slate-900">
@@ -1758,11 +1809,12 @@ export default function Resources() {
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Pick a roadmap, sharpen your interview skills and
-                  keep building.
+                  Pick a roadmap, sharpen your interview
+                  skills and keep building.
                 </p>
 
                 <div className="mt-7 space-y-4">
+
                   {[
                     {
                       label: "Learn fundamentals",
@@ -1778,13 +1830,19 @@ export default function Resources() {
                     },
                   ].map((item) => (
                     <div key={item.label}>
+
                       <div className="flex justify-between text-[11px] font-medium text-slate-500">
-                        <span>{item.label}</span>
+
+                        <span>
+                          {item.label}
+                        </span>
 
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+
                       </div>
 
                       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+
                         <motion.div
                           initial={{
                             width: 0,
@@ -1805,12 +1863,17 @@ export default function Resources() {
                             to-sky-600
                           "
                         />
+
                       </div>
+
                     </div>
                   ))}
+
                 </div>
+
               </div>
             </motion.div>
+
           </div>
         </div>
       </header>
@@ -1831,6 +1894,7 @@ export default function Resources() {
           lg:px-10
         "
       >
+
         <div
           className="
             flex
@@ -1845,7 +1909,9 @@ export default function Resources() {
             lg:justify-between
           "
         >
+
           <div>
+
             <p
               className="
                 text-[10px]
@@ -1883,14 +1949,16 @@ export default function Resources() {
                 sm:leading-6
               "
             >
-              Start with a roadmap, prepare for interviews or pick
-              up concise notes for quick revision.
+              Start with a roadmap, prepare for interviews
+              or pick up concise notes for quick revision.
             </p>
+
           </div>
 
           {/* SEARCH */}
 
           <div className="relative w-full lg:max-w-xs">
+
             <Search
               className="
                 pointer-events-none
@@ -1931,14 +1999,19 @@ export default function Resources() {
                 sm:text-sm
               "
             />
+
           </div>
+
         </div>
 
         {/* CATEGORIES */}
 
         <div className="mt-7 flex gap-2 overflow-x-auto pb-2 sm:mt-8">
+
           {RESOURCE_CATEGORIES.map((category) => {
-            const active = activeCategory === category.id;
+
+            const active =
+              activeCategory === category.id;
 
             return (
               <button
@@ -1971,6 +2044,7 @@ export default function Resources() {
               </button>
             );
           })}
+
         </div>
 
         {/* RESOURCE GRID */}
@@ -1988,7 +2062,9 @@ export default function Resources() {
             sm:gap-5
           "
         >
+
           <AnimatePresence mode="popLayout">
+
             {filteredResources.map((resource) => (
               <ResourceCard
                 key={resource.id}
@@ -1996,7 +2072,9 @@ export default function Resources() {
                 onExplore={setSelectedResource}
               />
             ))}
+
           </AnimatePresence>
+
         </motion.div>
 
         {/* EMPTY */}
@@ -2015,6 +2093,7 @@ export default function Resources() {
               text-center
             "
           >
+
             <Search className="mx-auto h-8 w-8 text-slate-300" />
 
             <h3 className="mt-4 text-lg font-semibold text-slate-900">
@@ -2024,6 +2103,7 @@ export default function Resources() {
             <p className="mt-2 text-sm text-slate-500">
               Try another keyword or choose a different category.
             </p>
+
           </div>
         )}
 
@@ -2049,6 +2129,7 @@ export default function Resources() {
             sm:py-11
           "
         >
+
           <div
             className="
               pointer-events-none
@@ -2064,6 +2145,7 @@ export default function Resources() {
           />
 
           <div className="relative">
+
             <div
               className="
                 mx-auto
@@ -2120,10 +2202,13 @@ export default function Resources() {
                 sm:text-sm
               "
             >
-              More roadmaps, cheat sheets, notes and interview
-              preparation resources will be added regularly.
+              More roadmaps, cheat sheets, notes and
+              interview preparation resources will be added
+              regularly.
             </p>
+
           </div>
+
         </section>
 
         {/* BOTTOM CTA */}
@@ -2142,6 +2227,7 @@ export default function Resources() {
             sm:py-12
           "
         >
+
           <div
             className="
               pointer-events-none
@@ -2167,7 +2253,9 @@ export default function Resources() {
               sm:justify-between
             "
           >
+
             <div>
+
               <span
                 className="
                   inline-flex
@@ -2184,6 +2272,7 @@ export default function Resources() {
                 "
               >
                 <GitBranch className="h-3 w-3" />
+
                 BUILD YOUR PATH
               </span>
 
@@ -2212,9 +2301,10 @@ export default function Resources() {
                   sm:leading-6
                 "
               >
-                New roadmaps, interview questions and developer
-                resources will be added regularly.
+                New roadmaps, interview questions and
+                developer resources will be added regularly.
               </p>
+
             </div>
 
             <div
@@ -2234,8 +2324,11 @@ export default function Resources() {
             >
               <Code2 className="h-6 w-6" />
             </div>
+
           </div>
+
         </section>
+
       </main>
 
       {/* =================================================
@@ -2246,10 +2339,13 @@ export default function Resources() {
         {selectedResource && (
           <ResourceModal
             resource={selectedResource}
-            onClose={() => setSelectedResource(null)}
+            onClose={() =>
+              setSelectedResource(null)
+            }
           />
         )}
       </AnimatePresence>
+
     </div>
   );
 }
